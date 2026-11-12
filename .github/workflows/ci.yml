@@ -1,0 +1,74 @@
+name: Rust
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [stable, "1.85.0"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --locked -p dioxus-map-editor --all-features
+      - run: cargo test --locked -p dioxus-map-editor --no-default-features
+      - run: cargo test --locked -p dioxus-map-editor --no-default-features --features official-plugins
+      - run: cargo run --locked -p dioxus-map-editor --no-default-features --example minimal_plugin
+      - run: cargo doc --locked -p dioxus-map-editor --all-features --no-deps
+        env:
+          RUSTDOCFLAGS: -D warnings
+  feature-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        feature: [plugin-formats, plugin-brushes, plugin-objects, plugin-map]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --locked -p dioxus-map-editor --no-default-features --features ${{ matrix.feature }}
+  style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --all --check
+      - run: cargo clippy --locked -p dioxus-map-editor -p map-editor-demo --all-features --all-targets -- -D warnings
+      - run: cargo clippy --locked -p dioxus-map-editor --no-default-features --all-targets -- -D warnings
+      - run: cargo test --locked -p map-editor-demo
+      - run: python3 scripts/test-release.py
+      - run: bash -n scripts/build-pages scripts/publish-crate
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --locked -p map-editor-website --target wasm32-unknown-unknown --release
+      - run: cargo clippy --locked -p map-editor-website --target wasm32-unknown-unknown -- -D warnings
+  desktop:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - run: cargo check --locked -p map-editor-desktop

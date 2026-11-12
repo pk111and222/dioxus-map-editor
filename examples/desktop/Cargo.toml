@@ -1,0 +1,10 @@
+[package]
+name = "map-editor-desktop"
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.85"
+publish = false
+
+[dependencies]
+dioxus = { workspace = true, features = ["desktop", "launch"] }
+map-editor-demo = { path = "../demo" }

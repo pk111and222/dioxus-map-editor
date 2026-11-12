@@ -1,0 +1,83 @@
+name: Website and crate release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+
+  build-pages:
+    needs: checks
+    permissions:
+      contents: read
+      pages: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: dioxus-cli@0.7.10
+      - uses: actions/configure-pages@v5
+        id: pages
+      - name: Build website for the actual Pages base path
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: scripts/build-pages "${PAGES_BASE_PATH:-/}"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/pages
+
+  deploy-pages:
+    concurrency:
+      group: github-pages
+      cancel-in-progress: true
+    needs: build-pages
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deploy
+
+  publish-crate:
+    needs: [checks, build-pages]
+    # Only the main push event can publish. Manual dispatch is a Pages redeploy.
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Compare package versions across this main push
+        id: version
+        env:
+          BEFORE: ${{ github.event.before }}
+          RELEASE_HEAD: ${{ github.sha }}
+        run: scripts/release-version "$BEFORE" "$RELEASE_HEAD" --output "$GITHUB_OUTPUT"
+      - name: Publish the changed version (skip if already on crates.io)
+        if: steps.version.outputs.changed == 'true'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: scripts/publish-crate "$RELEASE_VERSION"
+      - name: Record release decision
+        env:
+          CHANGED: ${{ steps.version.outputs.changed }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: echo "Crate version $VERSION; version changed = $CHANGED" >> "$GITHUB_STEP_SUMMARY"

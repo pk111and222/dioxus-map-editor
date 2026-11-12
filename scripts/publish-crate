@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Called only for version-changing main pushes. Re-running a published version is harmless.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+crate=dioxus-map-editor
+version="${1:?Usage: scripts/publish-crate VERSION}"
+actual=$(python3 -c 'import runpy; from pathlib import Path; print(runpy.run_path("scripts/release-version")["version"](Path("Cargo.toml").read_text()))')
+[[ "$version" == "$actual" ]] || { echo 'Planned version does not match checkout' >&2; exit 1; }
+index_file=$(mktemp)
+trap 'rm -f "$index_file"' EXIT
+status=$(curl --retry 3 --retry-all-errors --connect-timeout 15 --max-time 90 -sS -o "$index_file" -w '%{http_code}' "https://index.crates.io/di/ox/$crate")
+case "$status" in
+  200)
+    published=$(python3 - "$index_file" "$version" <<'PYINDEX'
+import json,sys
+entries = [json.loads(line) for line in open(sys.argv[1]) if line.strip()]
+if not entries or any("vers" not in entry for entry in entries):
+    raise ValueError("invalid crates.io index response")
+print("yes" if any(entry["vers"] == sys.argv[2] for entry in entries) else "no")
+PYINDEX
+    )
+    if [[ "$published" == yes ]]; then
+      echo "$crate $version is already published; skipping (including yanked versions)."
+      exit 0
+    fi ;;
+  404) ;;  # First publication.
+  *) echo "crates.io index returned HTTP $status; refusing to guess" >&2; exit 1 ;;
+esac
+[[ -n "${CARGO_REGISTRY_TOKEN:-}" ]] || { echo 'Missing CARGO_REGISTRY_TOKEN repository secret' >&2; exit 1; }
+cargo publish -p "$crate" --locked --registry crates-io

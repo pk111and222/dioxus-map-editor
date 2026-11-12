@@ -1,0 +1,12 @@
+use dioxus_map_editor::{
+    document::{MapDocument, MapSnapshot},
+    session::MapSession, storage::MemoryStore,
+};
+
+let mut session = MapSession::open(
+    MapSnapshot::standalone(MapDocument::new("my-map")),
+    None, Default::default(), Default::default(),
+)?;
+// session.execute(vec![...])?;
+let mut storage = MemoryStore::default();
+session.flush(&mut storage)?;

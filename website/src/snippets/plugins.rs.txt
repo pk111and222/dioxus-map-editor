@@ -1,0 +1,13 @@
+use dioxus_map_editor::{
+    editor::EditorTools, plugin::{PluginHost, PluginId},
+    plugins::objects::ObjectsPlugin,
+};
+
+let mut plugins = PluginHost::default();
+plugins.register(ObjectsPlugin)?;
+plugins.set_enabled(
+    &PluginId("official:objects".into()), true,
+    &mut session, &mut EditorTools::default(),
+)?;
+// Publish plugins.registry().clone() to your canvas signal.
+// Compose contributions() as your own divs and controls.

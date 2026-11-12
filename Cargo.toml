@@ -1,0 +1,50 @@
+[package]
+name = "dioxus-map-editor"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+description = "An embeddable SVG map editor core and interaction canvas for Dioxus"
+license = "MIT"
+repository = "https://github.com/pk111and222/dioxus-map-editor"
+readme = "README.md"
+keywords = ["dioxus", "map", "svg", "editor", "drawing"]
+categories = ["gui", "graphics"]
+include = ["src/**", "assets/editor.css", "tests/**", "README.md", "README_ZH.md", "assets/screenshots/**", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md", "THIRD_PARTY.md", "docs/**", "examples/minimal_plugin.rs"]
+
+[workspace]
+resolver = "3"
+members = ["examples/demo", "examples/web", "examples/desktop", "website"]
+default-members = ["."]
+
+[workspace.dependencies]
+dioxus = { version = "=0.7.10", default-features = false, features = ["macro", "html", "signals", "hooks", "mounted"] }
+
+[features]
+default = ["ui"]
+ui = ["dep:dioxus", "dep:web-time"]
+plugin-formats = []
+plugin-brushes = []
+plugin-objects = []
+plugin-map = []
+official-plugins = ["plugin-formats", "plugin-brushes", "plugin-objects", "plugin-map"]
+
+[dependencies]
+dioxus = { workspace = true, optional = true }
+web-time = { version = "1.1", optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+
+[package.metadata.docs.rs]
+features = ["ui", "official-plugins"]
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

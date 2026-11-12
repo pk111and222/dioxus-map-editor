@@ -1,0 +1,32 @@
+use dioxus::prelude::*;
+use dioxus_map_editor::{
+    document::{MapDocument, MapSnapshot},
+    editor::EditorTools, geometry::Viewport,
+    registry::Registry, session::MapSession,
+    ui::{MapCanvas, MapCanvasHandle},
+};
+
+#[component]
+fn Editor(invalidation: u64) -> Element {
+    let opened = use_hook(|| MapSession::open(
+        MapSnapshot::standalone(MapDocument::new("my-map")),
+        None, Default::default(), Default::default(),
+    ).map(Signal::new));
+    let tools = use_signal(EditorTools::default);
+    let registry = use_signal(Registry::default);
+    let view = use_signal(Viewport::default);
+    let mut handle = use_signal(|| None::<MapCanvasHandle>);
+    match opened {
+        Ok(session) => rsx! {
+            button { onclick: move |_| {
+                if let Some(canvas) = handle() { canvas.fit_frame(); }
+            }, "Fit map" }
+            MapCanvas {
+                session, tools, registry, view, invalidation,
+                show_controls: false, show_status: false,
+                onready: move |canvas| handle.set(Some(canvas)),
+            }
+        },
+        Err(error) => rsx! { p { "{error}" } },
+    }
+}

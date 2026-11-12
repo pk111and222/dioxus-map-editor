@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Rust/Dioxus client-only website, suitable for GitHub project Pages or a domain root.
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+base_path="${1:-/dioxus-map-editor/}"
+if [[ "$base_path" != /* || "$base_path" == *'..'* || "$base_path" == *'?'* || "$base_path" == *'#'* || "$base_path" == *' '* ]]; then
+  echo 'Usage: scripts/build-pages /repository-name/ (or / for a custom domain)' >&2
+  exit 2
+fi
+cd "$repo_root/website"
+rm -rf "$repo_root/target/dx/map-editor-website/release/web/public"
+dx build --platform web --release --locked --base-path "$base_path"
+cd "$repo_root"
+mkdir -p dist
+rm -rf dist/pages
+mkdir -p dist/pages
+cp -R target/dx/map-editor-website/release/web/public/. dist/pages/
+touch dist/pages/.nojekyll
+printf 'Static website: %s/dist/pages (base path %s)\n' "$repo_root" "$base_path"
