@@ -105,8 +105,8 @@ impl Default for Registry {
             contributions: Vec::new(),
         };
         for (key, name, bg, ink, fill) in [
-            ("builtin:simple", "简洁", "#ffffff", "#294c47", "#d7e6dd"),
-            ("builtin:paper", "纸绘", "#f5eedb", "#594c3c", "#d8cbae"),
+            ("builtin:simple", "Simple", "#ffffff", "#294c47", "#d7e6dd"),
+            ("builtin:paper", "Paper", "#f5eedb", "#594c3c", "#d8cbae"),
         ] {
             let paint = ResolvedPaint {
                 color: ink.into(),
@@ -165,17 +165,17 @@ impl Default for Registry {
         for (key, name, points) in [
             (
                 "builtin:diamond",
-                "菱形",
+                "Diamond",
                 vec![(0., 14.), (11., 0.), (0., -14.), (-11., 0.)],
             ),
             (
                 "builtin:flag",
-                "旗帜",
+                "Flag",
                 vec![(-10., -14.), (-10., 14.), (13., 14.), (7., 5.), (-10., 5.)],
             ),
             (
                 "builtin:star",
-                "星形",
+                "Star",
                 (0..10)
                     .map(|i| {
                         let a = std::f64::consts::FRAC_PI_2 + i as f64 * std::f64::consts::PI / 5.;
@@ -210,7 +210,7 @@ impl Default for Registry {
         for (key, name, paths) in [
             (
                 "builtin:tree",
-                "树木",
+                "Tree",
                 vec![
                     (vec![(0., 18.), (-12., -4.), (12., -4.)], true, true),
                     (vec![(0., -4.), (0., -15.)], false, false),
@@ -218,7 +218,7 @@ impl Default for Registry {
             ),
             (
                 "builtin:forest",
-                "森林",
+                "Forest",
                 vec![
                     (vec![(-7., 16.), (-18., -6.), (4., -6.)], true, true),
                     (vec![(8., 19.), (-3., -9.), (19., -9.)], true, true),
@@ -226,7 +226,7 @@ impl Default for Registry {
             ),
             (
                 "builtin:mountain",
-                "山体",
+                "Mountain",
                 vec![
                     (vec![(-19., -12.), (0., 17.), (19., -12.)], true, false),
                     (vec![(-6., 8.), (0., 4.), (5., 9.)], false, false),
@@ -234,7 +234,7 @@ impl Default for Registry {
             ),
             (
                 "builtin:town",
-                "城镇",
+                "Town",
                 vec![
                     (
                         vec![(-12., -12.), (-12., 7.), (0., 17.), (12., 7.), (12., -12.)],
@@ -277,7 +277,7 @@ impl Default for Registry {
         // A separate resource preserves the appearance of existing paper documents.
         let mut atlas = result.style(&reference("builtin:paper")).clone();
         atlas.resource = reference("builtin:atlas");
-        atlas.name = "自然纸绘".into();
+        atlas.name = "Paper atlas".into();
         atlas.background = "#bdcbc6".into();
         atlas.artwork = MapArtwork {
             coast_width: 18.,
@@ -312,7 +312,7 @@ impl Default for Registry {
         for (key, name, paths) in [
             (
                 "builtin:pine",
-                "细线松树",
+                "Pine",
                 vec![
                     (
                         vec![
@@ -343,7 +343,7 @@ impl Default for Registry {
             ),
             (
                 "builtin:ridge",
-                "线描山峰",
+                "Ridge",
                 vec![
                     (
                         vec![
@@ -375,7 +375,7 @@ impl Default for Registry {
             ),
             (
                 "builtin:citadel",
-                "海岸城镇",
+                "Citadel",
                 vec![
                     (
                         vec![

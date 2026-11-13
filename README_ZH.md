@@ -93,7 +93,11 @@ fn Editor(invalidation: u64) -> Element {
 }
 ```
 
-为画布容器设置高度。handle 可访问 session/tools/registry/view、提交命令、结束路径、取消手势或提交文字。`text_overlay` 替换文字编辑层，`overlay` 增加宿主 UI，`TextEditorLabels` 自定义默认文字按钮。可选 `MapEditor` 的默认工具栏目前是中文；完整国际化界面请像 demo 一样组合 `MapCanvas`。
+为画布容器设置高度。handle 可访问 session/tools/registry/view、提交命令、结束路径、取消手势或提交文字。`text_overlay` 替换文字编辑层，`overlay` 增加宿主 UI，`TextEditorLabels` 自定义默认文字按钮。内置文字默认均为英文：`CanvasLabels` 翻译画布视图栏、状态栏与无障碍名称，`UiText`（英文键 → 译文）翻译可选的 `MapEditor`、`EditorToolbar`、`EditorProperties`、`MapTools` 面板，未提供的键保持英文。
+
+样式通过 CSS 变量定制（`--dme-ui-bg`、`--dme-ui-fg`、`--dme-ui-line`、`--dme-ui-accent`、`--dme-canvas-bg`、`--dme-selection` 等，完整列表见 `assets/editor.css` 顶部），可设在组件或任意祖先上；加 `data-dme-theme="dark"` 使用自带深色预设。选区、手柄、画框和吸附标记也跟随这些变量。用 `--dme-surface-height`（或直接设置 `.dme-editor-surface` 尺寸）铺满宿主面板。宿主自行加载一次 `EDITOR_CSS` 时传 `inject_css: false`。
+
+`measure` 提供与渲染无关的标注辅助：存为可撤销文档扩展 `dme:scale` 的地图比例（`MapScale`）、直线距离、方位角（0° 为北、顺时针）与八方位 `Compass`、折线/路径/对象长度，以及对象或宿主地点在当前地图上的位置。宿主通过 `overlay` 自行绘制标尺、标签或约束提示。
 
 绘制要求当前图层可见且未锁定。画布会在显示草稿前检查，并通过 `onerror` 返回类型化错误，即使关闭 `show_status` 也能接收，方便宿主实现自己的多语言提示。demo 提供明确的解锁/显示操作，并完全通过 `text_overlay` 和公开 handle 实现支持输入法组合输入的纸面风格文字编辑器。
 

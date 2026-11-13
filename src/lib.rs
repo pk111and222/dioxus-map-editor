@@ -13,6 +13,7 @@ pub mod geometry;
 pub mod history;
 pub mod interaction;
 pub mod map;
+pub mod measure;
 pub mod plugin;
 pub mod plugins;
 pub mod region;

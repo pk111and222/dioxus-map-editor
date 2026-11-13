@@ -1,21 +1,38 @@
-.dme-editor { --dme-ui-bg:#fffef9; --dme-ui-fg:#263c36; --dme-ui-line:#d9ded5; --dme-ui-accent:#25685b; color:var(--dme-ui-fg); background:var(--dme-ui-bg); border:1px solid var(--dme-ui-line); border-radius:12px; font:13px/1.5 system-ui,sans-serif; overflow:hidden; }
+/* Theme tokens. Hosts override them on .dme-editor / .dme-editor-canvas or any ancestor
+   (for example a dark theme); every built-in control and canvas handle reads them. */
+.dme-editor,.dme-editor-canvas { --dme-ui-bg:#fffef9; --dme-ui-fg:#263c36; --dme-ui-muted:#708075; --dme-ui-line:#d9ded5; --dme-ui-accent:#25685b; --dme-ui-on-accent:#ffffff; --dme-ui-focus:#de9940; --dme-canvas-bg:#e8ece4; --dme-frame:#b4bcb1; --dme-selection:#197d79; --dme-handle-fill:#ffffff; --dme-control:#d88b44; --dme-control-fill:#ffe1a9; --dme-snap:#b98540; --dme-snap-fill:#faf8ee; --dme-brush-cursor:#73815d; }
+/* Opt-in dark preset: add data-dme-theme="dark" to the component or any ancestor. */
+[data-dme-theme=dark] .dme-editor,[data-dme-theme=dark] .dme-editor-canvas,.dme-editor[data-dme-theme=dark],.dme-editor-canvas[data-dme-theme=dark] { --dme-ui-bg:#1f2523; --dme-ui-fg:#e3e8e2; --dme-ui-muted:#9aa79f; --dme-ui-line:#3a4441; --dme-ui-accent:#5fae9c; --dme-ui-on-accent:#10201b; --dme-canvas-bg:#2a302d; --dme-frame:#56605b; --dme-selection:#62c3b5; --dme-handle-fill:#1f2523; --dme-control-fill:#5b4524; --dme-snap-fill:#2a302d; --dme-brush-cursor:#a8b98f; }
+.dme-editor { color:var(--dme-ui-fg); background:var(--dme-ui-bg); border:1px solid var(--dme-ui-line); border-radius:12px; font:13px/1.5 system-ui,sans-serif; overflow:hidden; }
 .dme-editor *, .dme-editor-canvas * { box-sizing:border-box; }
-.dme-editor button,.dme-editor input,.dme-editor select,.dme-editor-canvas button { font:inherit; color:inherit; border:1px solid var(--dme-ui-line,#d9ded5); background:var(--dme-ui-bg,#fffef9); border-radius:5px; padding:5px 8px; min-width:0; }
+.dme-editor button,.dme-editor input,.dme-editor select,.dme-editor-canvas button,.dme-editor-canvas input { font:inherit; color:var(--dme-ui-fg); border:1px solid var(--dme-ui-line); background:var(--dme-ui-bg); border-radius:5px; padding:5px 8px; min-width:0; }
 .dme-editor button,.dme-editor-canvas button { cursor:pointer; }
-.dme-editor button:disabled { opacity:.4; cursor:default; }
-.dme-editor button[aria-pressed=true] { background:var(--dme-ui-accent); color:white; border-color:var(--dme-ui-accent); }
-.dme-editor :focus-visible,.dme-editor-canvas :focus-visible { outline:3px solid #de9940; outline-offset:1px; }
-.dme-editor-toolbar,.dme-viewbar { display:flex; flex-wrap:wrap; align-items:center; gap:7px; padding:10px 12px; border-bottom:1px solid var(--dme-ui-line,#d9ded5); }
+.dme-editor button:disabled,.dme-editor-canvas button:disabled { opacity:.4; cursor:default; }
+.dme-editor button[aria-pressed=true] { background:var(--dme-ui-accent); color:var(--dme-ui-on-accent); border-color:var(--dme-ui-accent); }
+.dme-editor :focus-visible,.dme-editor-canvas :focus-visible { outline:3px solid var(--dme-ui-focus); outline-offset:1px; }
+.dme-editor-toolbar,.dme-viewbar { display:flex; flex-wrap:wrap; align-items:center; gap:7px; padding:10px 12px; border-bottom:1px solid var(--dme-ui-line); }
 .dme-toolbar-separator { height:20px; border-left:1px solid var(--dme-ui-line); }
 .dme-toolbar-message { font-size:10px; overflow-wrap:anywhere; }
 .dme-editor-body { display:grid; grid-template-columns:minmax(0,1fr) 235px; }
-.dme-editor-canvas { min-width:0; }
+.dme-editor-canvas { min-width:0; color:var(--dme-ui-fg); }
 .dme-viewbar span { margin-right:auto; }
-.dme-editor-surface { height:480px; position:relative; min-width:0; overflow:hidden; }
-.dme-editor-svg { display:block; width:100%; height:100%; background:#e8ece4; touch-action:none; user-select:none; }
+/* Default height only; hosts size the surface (e.g. height:100%) for full-panel embedding. */
+.dme-editor-surface { height:var(--dme-surface-height,480px); position:relative; min-width:0; overflow:hidden; }
+.dme-editor-svg { display:block; width:100%; height:100%; background:var(--dme-canvas-bg); touch-action:none; user-select:none; }
 .dme-editor-svg * { pointer-events:none; }
-.dme-editor-svg[data-tool=Brush],.dme-editor-svg[data-tool=Path],.dme-editor-svg[data-tool=Stamp] { cursor:crosshair; }
+.dme-editor-svg[data-tool=Brush],.dme-editor-svg[data-tool=Path],.dme-editor-svg[data-tool=Stamp],.dme-editor-svg[data-tool=Scatter],.dme-editor-svg[data-tool=MapNode],.dme-editor-svg[data-tool=Anchor] { cursor:crosshair; }
+.dme-editor-svg[data-tool=Text] { cursor:text; }
 .dme-editor-svg[data-tool=Pan] { cursor:grab; }
+/* Editing chrome: CSS wins over SVG presentation attributes, so these follow the tokens. */
+.dme-frame-outline { stroke:var(--dme-frame); }
+.dme-selection,.dme-handle,.dme-node,.dme-marquee { stroke:var(--dme-selection); }
+.dme-handle,.dme-node { fill:var(--dme-handle-fill); }
+.dme-node[data-active=true],.dme-draft-node { fill:var(--dme-selection); }
+.dme-marquee { fill:color-mix(in srgb,var(--dme-selection) 12%,transparent); }
+.dme-control-line,.dme-control { stroke:var(--dme-control); }
+.dme-control { fill:var(--dme-control-fill); }
+.dme-edge-snap { stroke:var(--dme-snap); fill:var(--dme-snap-fill); }
+.dme-brush-cursor { stroke:var(--dme-brush-cursor); fill:color-mix(in srgb,var(--dme-brush-cursor) 7%,transparent); }
 .dme-editor-properties { padding:12px; border-left:1px solid var(--dme-ui-line); max-height:565px; overflow:auto; }
 .dme-editor-properties h3 { font-size:12px; margin:8px 0; letter-spacing:.05em; }
 .dme-editor-properties label { display:flex; gap:8px; align-items:center; justify-content:space-between; margin:7px 0; }
@@ -28,13 +45,15 @@
 .dme-layer-row input { width:100%; }
 .dme-layer-row button { padding:3px 6px; }
 .dme-object-id,.dme-notice,.dme-help { font-size:11px; overflow-wrap:anywhere; }
-.dme-help { color:#708075; }
-.dme-editor-status { display:flex; flex-wrap:wrap; gap:5px 14px; border-top:1px solid var(--dme-ui-line,#d9ded5); padding:9px 12px; font-size:11px; }
+.dme-help { color:var(--dme-ui-muted); }
+.dme-editor-status { display:flex; flex-wrap:wrap; gap:5px 14px; border-top:1px solid var(--dme-ui-line); padding:9px 12px; font-size:11px; }
 .dme-editor-status [role=status] { flex-basis:100%; }
-.dme-text-editor { position:absolute; display:flex; flex-wrap:wrap; gap:4px; padding:6px; background:#fffef9; border:1px solid #197d79; border-radius:6px; max-width:95%; z-index:2; }
+.dme-text-editor { position:absolute; display:flex; flex-wrap:wrap; gap:4px; padding:6px; color:var(--dme-ui-fg); background:var(--dme-ui-bg); border:1px solid var(--dme-selection); border-radius:6px; max-width:95%; z-index:2; }
 .dme-text-editor input { min-width:90px; width:180px; }
-.dme-capture { position:fixed; inset:0; z-index:2147483647; touch-action:none; user-select:none; cursor:crosshair; outline:none !important; }
-@media(max-width:800px) { .dme-editor-body { grid-template-columns:minmax(0,1fr); } .dme-editor-properties { border-left:0; border-top:1px solid var(--dme-ui-line); max-height:270px; } .dme-editor-surface {height:400px;} }
+.dme-capture { position:fixed; inset:0; z-index:var(--dme-capture-z,2147483647); touch-action:none; user-select:none; cursor:crosshair; outline:none !important; }
+.dme-capture[data-cursor=grab] { cursor:grabbing; }
+.dme-capture[data-cursor=move] { cursor:move; }
+@media(max-width:800px) { .dme-editor-body { grid-template-columns:minmax(0,1fr); } .dme-editor-properties { border-left:0; border-top:1px solid var(--dme-ui-line); max-height:270px; } .dme-editor-surface {height:var(--dme-surface-height,400px);} }
 .dme-map-tools {border-bottom:1px solid var(--dme-ui-line);padding:0 12px;}
 .dme-map-tools>summary {padding:8px 0;cursor:pointer;font-weight:600;}
 .dme-map-tools .dme-editor-toolbar {padding:7px 0;border:0;}

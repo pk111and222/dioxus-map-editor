@@ -3,13 +3,39 @@ use crate::{document::*, geometry::*, registry::*};
 use std::fmt::Write;
 
 /// Escape text or a quoted XML attribute. Never accept raw user markup.
+/// Characters that XML 1.0 forbids (C0 controls other than tab/LF/CR, U+FFFE,
+/// U+FFFF) are dropped so strict SVG parsers accept the output.
 pub fn escape_xml(value: &str) -> String {
-    value
-        .replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&apos;")
+    let mut out = String::with_capacity(value.len());
+    for c in value.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&apos;"),
+            c if xml_char(c) => out.push(c),
+            _ => {}
+        }
+    }
+    out
+}
+/// Whether XML 1.0 allows this character.
+pub(crate) fn xml_char(c: char) -> bool {
+    matches!(c, '\t' | '\n' | '\r') || (c >= ' ' && !matches!(c, '\u{fffe}' | '\u{ffff}'))
+}
+/// Restrict a host-supplied ID prefix to `[A-Za-z0-9_-]` for SVG attributes.
+pub(crate) fn safe_prefix(prefix: &str) -> String {
+    prefix
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect()
 }
 /// Stable safe SVG identifier for any resource key and version.
 pub fn resource_id(prefix: &str, r: &ResourceRef) -> String {
@@ -361,6 +387,9 @@ fn inside(p: Point, polygon: &[Point]) -> bool {
 }
 /// Topmost editable object; tolerance is converted from screen pixels to world.
 pub fn hit_test(s: &MapSnapshot, r: &Registry, p: Point, scale: f64) -> Option<ObjectId> {
+    if !scale.is_finite() || scale <= 0. || !p.is_finite() {
+        return None;
+    }
     for layer in s
         .document
         .layers
@@ -423,6 +452,7 @@ fn transform_attr(t: Transform) -> String {
 }
 /// All symbols are local, self-contained safe vector paths.
 pub fn definitions(r: &Registry, prefix: &str) -> String {
+    let prefix = &safe_prefix(prefix);
     let mut out = String::new();
     let grain = resource_id(
         prefix,
@@ -449,6 +479,7 @@ pub fn definitions(r: &Registry, prefix: &str) -> String {
 }
 /// Deterministic paper treatment in world coordinates, excluding editor chrome.
 pub fn paper_svg(s: &MapSnapshot, r: &Registry, prefix: &str) -> String {
+    let prefix = &safe_prefix(prefix);
     let style = r.style(&s.document.style);
     if !style.artwork.paper_grain {
         return String::new();
@@ -465,6 +496,7 @@ pub fn paper_svg(s: &MapSnapshot, r: &Registry, prefix: &str) -> String {
 }
 /// Render one object. Unknown symbols show a recoverable placeholder.
 pub fn object_svg(o: &MapObject, s: &MapSnapshot, r: &Registry, prefix: &str) -> String {
+    let prefix = &safe_prefix(prefix);
     let p = r.paint(&s.document.style, &o.paint);
     let color = escape_xml(&p.color);
     let label_font = if r.style(&s.document.style).artwork.serif_labels {
@@ -592,7 +624,9 @@ pub fn object_svg(o: &MapObject, s: &MapSnapshot, r: &Registry, prefix: &str) ->
     out
 }
 /// Cached committed object; rebuilding is necessary only after content changes.
-#[derive(Clone, Debug, PartialEq)]
+/// `Eq` lets `Rc<SceneObject>` comparisons short-circuit on pointer identity, so
+/// pan/zoom re-renders skip unchanged fragments without comparing SVG strings.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SceneObject {
     /// Stable key for renderer reconciliation.
     pub id: ObjectId,

@@ -534,11 +534,20 @@ fn paint(value: &Paint) -> MapResult<()> {
     }
     Ok(())
 }
+/// Largest accepted absolute world coordinate. Far below `f64::MAX`, so smoothing,
+/// bounds and SVG output (which add and scale coordinates) stay finite.
+pub const MAX_COORDINATE: f64 = 1e12;
 fn transform_points(transform: Transform, points: impl Iterator<Item = Point>) -> MapResult<()> {
     for point in points {
-        transform
+        let world = transform
             .apply(point)
             .map_err(|e| MapError::Invalid(e.to_string()))?;
+        if [point.x, point.y, world.x, world.y]
+            .iter()
+            .any(|v| v.abs() > MAX_COORDINATE)
+        {
+            return invalid("coordinate extent");
+        }
     }
     Ok(())
 }

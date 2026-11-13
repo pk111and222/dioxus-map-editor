@@ -85,7 +85,7 @@ impl Default for EditorTools {
             smooth: false,
             closed: false,
             region: Default::default(),
-            node_name: "新地点".into(),
+            node_name: "New place".into(),
             anchor: None,
             scatter: crate::map::ScatterSettings::default(),
         }
@@ -397,12 +397,25 @@ pub fn brush_commands(
 }
 /// First available generated ID, checking loaded data and history revisions.
 pub fn next_object_id(s: &MapSnapshot, revision: u64) -> MapResult<ObjectId> {
-    let mut n = revision;
+    let used = used_ids(s);
+    next_free_id(&used, "object", revision).map(|(id, _)| id)
+}
+/// Existing object IDs, collected once so allocation stays linear in document size.
+pub(crate) fn used_ids(s: &MapSnapshot) -> std::collections::HashSet<&str> {
+    s.document.objects.iter().map(|o| o.id.0.as_str()).collect()
+}
+/// First `{prefix}-{n}` after `after` that is not in `used`; also returns `n`.
+pub(crate) fn next_free_id(
+    used: &std::collections::HashSet<&str>,
+    prefix: &str,
+    after: u64,
+) -> MapResult<(ObjectId, u64)> {
+    let mut n = after;
     loop {
         n = n.checked_add(1).ok_or(MapError::Exhausted)?;
-        let id = ObjectId(format!("object-{n}"));
-        if !s.document.objects.iter().any(|o| o.id == id) {
-            return Ok(id);
+        let id = format!("{prefix}-{n}");
+        if !used.contains(id.as_str()) {
+            return Ok((ObjectId(id), n));
         }
     }
 }
@@ -413,21 +426,31 @@ pub fn create_object(
     tools: &EditorTools,
     geometry: Geometry,
 ) -> MapResult<Command> {
+    let id = next_object_id(s, revision)?;
+    Ok(object_with_id(s, tools, id, geometry))
+}
+/// Ordinary object with a caller-allocated ID (see `create_object`).
+pub(crate) fn object_with_id(
+    s: &MapSnapshot,
+    tools: &EditorTools,
+    id: ObjectId,
+    geometry: Geometry,
+) -> Command {
     let mut paint = tools.paint.clone();
     if matches!(geometry, Geometry::Text { .. }) {
         paint.role = "label".into();
         paint.width = Some(tools.text_size);
     }
-    Ok(Command::PutObject {
+    Command::PutObject {
         object: MapObject {
-            id: next_object_id(s, revision)?,
+            id,
             layer_id: tools.layer.clone(),
             geometry,
             paint,
             extensions: Extensions::new(),
         },
         index: s.document.objects.len(),
-    })
+    }
 }
 /// Deterministic Ramer-Douglas-Peucker, iterative to bound stack usage. Keep endpoints.
 pub fn simplify(points: &[Point], tolerance: f64) -> Vec<Point> {

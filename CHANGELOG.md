@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- All built-in UI strings default to English; `CanvasLabels` and `UiText` translate the canvas and the optional default panels. Built-in resource names are English.
+- Theme tokens for every control and canvas chrome element, an opt-in `data-dme-theme="dark"` preset, `--dme-surface-height`, and `inject_css` to load `EDITOR_CSS` once.
+- New `measure` module: undoable map scale, distance, bearing/compass, path lengths and anchor positions for host annotations.
+- Fix: `onactivate` no longer runs while session/tools are borrowed; road/river textures stay visible while dragging a node; keyboard input inside host overlays no longer triggers canvas shortcuts; hover is tracked only for tools that preview it.
+- Fix: a file watcher reporting the in-flight save no longer locks the session in a conflict; placing an unlocated host anchor respects the first layer's lock; `ReplaceDocument` validates with the session limits.
+- Fix: object/scatter ID allocation is linear instead of quadratic (previews on large maps no longer stall); `hit_test` ignores non-positive scales; SVG ID prefixes are sanitized and XML-illegal characters are dropped from exported text; coordinates beyond `MAX_COORDINATE` (1e12) are rejected so smoothing and export stay finite.
+- Breaking: `MapCanvas::label` is now `Option<String>` (defaults to `CanvasLabels::canvas`).
+
 ## 0.1.0 — 2026-11-12
 
 - Seeded natural region edges, contour snapping and exact shared cubic border arcs in brush/click modes.

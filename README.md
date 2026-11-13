@@ -93,7 +93,11 @@ fn Editor(invalidation: u64) -> Element {
 }
 ```
 
-Set a height on the canvas container. Use the handle to access session/tools/registry/view, execute commands, finish paths, cancel gestures, or commit text. `text_overlay` replaces the text editor; `overlay` adds host UI; `TextEditorLabels` translates the default text controls. The optional `MapEditor` default toolbar is currently Chinese; fully localized applications should compose `MapCanvas`, as the demo does.
+Set a height on the canvas container. Use the handle to access session/tools/registry/view, execute commands, finish paths, cancel gestures, or commit text. `text_overlay` replaces the text editor; `overlay` adds host UI; `TextEditorLabels` translates the default text controls. All built-in strings default to English: `CanvasLabels` translates the canvas view bar, status and accessibility names, and `UiText` (English key → translation) translates the optional `MapEditor`, `EditorToolbar`, `EditorProperties` and `MapTools` panels; untranslated keys stay English.
+
+Theme the components with CSS variables (`--dme-ui-bg`, `--dme-ui-fg`, `--dme-ui-line`, `--dme-ui-accent`, `--dme-canvas-bg`, `--dme-selection` and the other `--dme-*` tokens at the top of `assets/editor.css`) on the component or any ancestor; add `data-dme-theme="dark"` for the bundled dark preset. Selection, handles, frame and snap markers follow the same tokens. Set `--dme-surface-height` (or size `.dme-editor-surface`) to fill a host panel. Pass `inject_css: false` when you load `EDITOR_CSS` once yourself.
+
+`measure` provides renderer-free annotation helpers: a document scale stored as the undoable `dme:scale` extension (`MapScale`), straight-line distance, compass bearing (0° = north, clockwise) and `Compass` sectors, polyline/path/object lengths, and positions of objects or host anchors on the current map. Hosts draw rulers, labels or constraint warnings through `overlay`.
 
 Drawing requires a visible, unlocked layer. The canvas checks this before showing a draft and reports typed failures through `onerror`, even when `show_status` is disabled. Use this callback for your own localized notices. The demo includes an explicit unlock/show action and builds its styled, IME-aware text editor entirely through `text_overlay` and the public handle.
 
