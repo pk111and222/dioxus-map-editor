@@ -23,18 +23,18 @@
 
 ## Cargo 接入
 
-需要 **Rust 1.85+**（edition 2021）、**Dioxus 0.7.10**。首个版本为 **0.1.0**，可访问 [crates.io](https://crates.io/crates/dioxus-map-editor)、[API 文档](https://docs.rs/dioxus-map-editor) 与[在线官网](https://pk111and222.github.io/dioxus-map-editor/)。
+需要 **Rust 1.85+**（edition 2021）、**Dioxus 0.7.10**。当前版本为 **0.2.0**（0.1 → 0.2 的变化见 [CHANGELOG](CHANGELOG.md)），可访问 [crates.io](https://crates.io/crates/dioxus-map-editor)、[API 文档](https://docs.rs/dioxus-map-editor) 与[在线官网](https://pk111and222.github.io/dioxus-map-editor/)。
 
 ```toml
 [dependencies]
 dioxus = { version = "=0.7.10", features = ["web"] }
-dioxus-map-editor = { version = "0.1.0", features = ["official-plugins"] }
+dioxus-map-editor = { version = "0.2.0", features = ["official-plugins"] }
 ```
 
 已有 Dioxus 应用也可以运行：
 
 ```sh
-cargo add dioxus-map-editor@0.1.0 --features official-plugins
+cargo add dioxus-map-editor@0.2.0 --features official-plugins
 ```
 
 使用最新开发版本：
