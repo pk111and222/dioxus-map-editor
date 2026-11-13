@@ -278,8 +278,10 @@ impl MapSession {
     fn check_custom_edits(&self, commands: &[Command]) -> MapResult<()> {
         for command in commands {
             if let Command::ReplaceDocument(document) = command {
-                self.registry
-                    .validate_snapshot(&MapSnapshot::standalone(*document.clone()))?;
+                self.registry.validate_snapshot_with_limits(
+                    &MapSnapshot::standalone(*document.clone()),
+                    &self.limits,
+                )?;
             }
             if let Command::PutObject { object, .. } = command {
                 let existing = self
@@ -735,7 +737,13 @@ impl MapSession {
         }
         let stored = StoredMap::from_snapshot(&fresh);
         stored.validate(&self.limits)?;
-        if stored != self.clean {
+        // A watcher seeing our own outstanding write is an echo, not a conflict:
+        // the receipt will promote that snapshot to the clean baseline.
+        let echo = self
+            .in_flight
+            .as_ref()
+            .is_some_and(|request| request.snapshot == stored);
+        if stored != self.clean && !echo {
             self.gesture = None;
             if self.is_dirty() || self.is_saving() {
                 self.needs_host_refresh = self.is_saving();

@@ -419,3 +419,33 @@ fn drawing_preflight_rejects_locked_hidden_missing_layers_without_mutation() {
     assert!(tools.drawing_layer(&snapshot).is_err());
     assert!(snapshot.document.objects.is_empty());
 }
+
+#[test]
+fn export_drops_xml_illegal_characters_and_hit_test_needs_positive_scale() {
+    use dioxus_map_editor::{export::export_svg, registry::Registry, scene};
+    let mut doc = MapDocument::new("x");
+    doc.objects.push(MapObject {
+        id: "t".into(),
+        layer_id: "base".into(),
+        geometry: Geometry::Text {
+            text: "a\u{1}b\u{FFFF}c".into(),
+            transform: Transform::default(),
+        },
+        paint: Paint::default(),
+        extensions: Default::default(),
+    });
+    let snapshot = MapSnapshot::standalone(doc);
+    let svg = export_svg(&snapshot, &Registry::default(), &Limits::default())
+        .unwrap()
+        .svg;
+    assert!(svg.contains(">abc<") && !svg.contains('\u{1}') && !svg.contains('\u{FFFF}'));
+    let far = Point::new(9999., 9999.);
+    assert_eq!(
+        scene::hit_test(&snapshot, &Registry::default(), far, 0.),
+        None
+    );
+    assert_eq!(
+        scene::hit_test(&snapshot, &Registry::default(), far, -1.),
+        None
+    );
+}

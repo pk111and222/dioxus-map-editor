@@ -345,7 +345,11 @@ pub(crate) fn prepare(
                 // A default projection belongs to the first layer. Check the
                 // transaction's original state too: adding an appearance on an
                 // unlocked layer must not bypass that projection's lock.
-                if snapshot.anchors.get(&id).is_some_and(|a| a.position.is_some())
+                // Placing an unlocated anchor creates that projection too.
+                if snapshot
+                    .anchors
+                    .get(&id)
+                    .is_some_and(|a| a.position.is_some() || point.is_some())
                     && !snapshot.document.objects.iter().any(|o| matches!(&o.geometry, Geometry::BoundMarker { anchor_id, .. } if anchor_id == &id))
                 {
                     if let Some(layer) = snapshot.document.layers.first() {

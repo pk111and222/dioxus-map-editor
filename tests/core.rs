@@ -901,3 +901,62 @@ fn external_resource_over_envelope_budget_leaves_session_untouched() {
     assert_eq!(session.snapshot(), &snapshot);
     assert_eq!(session.save_state(), &SaveState::Unmodified);
 }
+
+#[test]
+fn watcher_echo_of_in_flight_save_is_not_a_conflict() {
+    let mut session = empty();
+    add(&mut session, "a");
+    let request = session.begin_save().unwrap().unwrap();
+    let echo = request.snapshot.clone().into_snapshot();
+    session.observe_external(&session.stamp(), echo).unwrap();
+    assert!(session.complete_save(request.receipt(Ok(()))));
+    assert_eq!(session.save_state(), &SaveState::Saved);
+    add(&mut session, "b");
+}
+
+#[test]
+fn placing_unlocated_anchor_respects_first_layer_lock() {
+    let mut snapshot = bound_snapshot();
+    if let Some(a) = snapshot.anchors.values_mut().next() {
+        a.position = None;
+    }
+    snapshot.document.layers[0].locked = true;
+    let mut session = MapSession::open(
+        snapshot.clone(),
+        None,
+        Limits::default(),
+        HistoryBudget::default(),
+    )
+    .unwrap();
+    let mut host = Host {
+        anchors: snapshot.anchors.clone(),
+        fail: false,
+    };
+    let result = session.execute_with_host(
+        vec![Command::MoveAnchor {
+            id: "place".into(),
+            point: Some(Point::new(1., 2.)),
+        }],
+        &mut host,
+    );
+    assert!(
+        matches!(result, Err(MapError::Invalid(_)) | Err(MapError::ReadOnly)),
+        "{result:?}"
+    );
+}
+
+#[test]
+fn coordinates_beyond_world_extent_are_rejected() {
+    let mut session = empty();
+    let mut far = object("far");
+    far.geometry = Geometry::Stroke {
+        points: vec![Point::new(1e308, 0.), Point::new(-1e308, 0.)],
+        transform: Transform::default(),
+    };
+    assert!(session
+        .execute(vec![Command::PutObject {
+            object: far,
+            index: 0
+        }])
+        .is_err());
+}

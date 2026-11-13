@@ -93,6 +93,11 @@ impl Interaction {
         self.active.is_some()
     }
 
+    /// Whether the active gesture pans the viewport.
+    pub fn is_panning(&self) -> bool {
+        self.active.as_ref().is_some_and(|g| g.tool == Tool::Pan)
+    }
+
     /// Current owning pointer, if any.
     pub fn pointer_id(&self) -> Option<i32> {
         self.active.as_ref().map(|g| g.pointer)

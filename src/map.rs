@@ -267,6 +267,7 @@ pub fn scatter(
     let mut seed = settings.seed;
     let mut result = Vec::new();
     let mut number = revision;
+    let used = crate::editor::used_ids(s);
     for p in candidates {
         if random(&mut seed) > settings.density {
             continue;
@@ -274,10 +275,12 @@ pub fn scatter(
         if result.len() >= budget {
             return Err(MapError::Budget("scatter objects or commands".into()));
         }
-        let mut command = create_object(
+        let (id, next) = crate::editor::next_free_id(&used, "scatter", number)?;
+        number = next;
+        let mut command = crate::editor::object_with_id(
             s,
-            number,
             t,
+            id,
             Geometry::Stamp {
                 stamp: t.stamp.clone(),
                 transform: Transform {
@@ -291,16 +294,8 @@ pub fn scatter(
                         + random(&mut seed) * (settings.rotation[1] - settings.rotation[0]),
                 },
             },
-        )?;
+        );
         if let Command::PutObject { object, index } = &mut command {
-            loop {
-                number = number.checked_add(1).ok_or(MapError::Exhausted)?;
-                let id = ObjectId(format!("scatter-{number}"));
-                if !s.document.objects.iter().any(|o| o.id == id) {
-                    object.id = id;
-                    break;
-                }
-            }
             *index = s.document.objects.len() + result.len();
             object.extensions.insert(
                 "map:scatter".into(),
