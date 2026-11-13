@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 use map_editor_demo::{Demo, Language};
 const SITE_CSS: &str = include_str!("../assets/site.css");
 const API_CODE: &str = include_str!("snippets/canvas.rs.txt");
-const INSTALL:&str="[dependencies]\ndioxus = { version = \"=0.7.10\", features = [\"web\"] }\ndioxus-map-editor = { version = \"0.1.0\", features = [\"official-plugins\"] }";
+const INSTALL:&str="[dependencies]\ndioxus = { version = \"=0.7.10\", features = [\"web\"] }\ndioxus-map-editor = { version = \"0.2.0\", features = [\"official-plugins\"] }";
 fn main() {
     dioxus::launch(App);
 }
@@ -275,8 +275,8 @@ fn App() -> Element {
                                     p {
                                         {
                                             l.text(
-                                                "The initial release is 0.1.0. Use a Git dependency below for the latest development revision.",
-                                                "首个版本为 0.1.0。如需最新开发版本，可使用下面的 Git 依赖。",
+                                                "The current release is 0.2.0. Use a Git dependency below for the latest development revision.",
+                                                "当前版本为 0.2.0。如需最新开发版本，可使用下面的 Git 依赖。",
                                             )
                                         }
                                     }

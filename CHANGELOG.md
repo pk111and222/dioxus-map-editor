@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 — 2026-11-13
+
+Upgrading from 0.1: `MapCanvas { label: "…".into() }` becomes `label: Some("…".into())` (or set `labels: CanvasLabels { canvas, .. }`). Built-in UI text and resource display names are now English; pass `CanvasLabels` / `UiText` to translate. The document schema is unchanged (schema 1); the only new load-time rejection is coordinates beyond `MAX_COORDINATE` (1e12).
 
 - All built-in UI strings default to English; `CanvasLabels` and `UiText` translate the canvas and the optional default panels. Built-in resource names are English.
 - Theme tokens for every control and canvas chrome element, an opt-in `data-dme-theme="dark"` preset, `--dme-surface-height`, and `inject_css` to load `EDITOR_CSS` once.

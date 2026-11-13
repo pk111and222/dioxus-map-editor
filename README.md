@@ -23,18 +23,18 @@ The [live demo](https://pk111and222.github.io/dioxus-map-editor/#playground) is 
 
 ## Use with Cargo
 
-Requires **Rust 1.85+** (edition 2021) and **Dioxus 0.7.10**. The initial release is **0.1.0**. See [crates.io](https://crates.io/crates/dioxus-map-editor), [API reference](https://docs.rs/dioxus-map-editor) and the [live website](https://pk111and222.github.io/dioxus-map-editor/).
+Requires **Rust 1.85+** (edition 2021) and **Dioxus 0.7.10**. The current release is **0.2.0** (see the [changelog](CHANGELOG.md) for 0.1 → 0.2 changes). See [crates.io](https://crates.io/crates/dioxus-map-editor), [API reference](https://docs.rs/dioxus-map-editor) and the [live website](https://pk111and222.github.io/dioxus-map-editor/).
 
 ```toml
 [dependencies]
 dioxus = { version = "=0.7.10", features = ["web"] }
-dioxus-map-editor = { version = "0.1.0", features = ["official-plugins"] }
+dioxus-map-editor = { version = "0.2.0", features = ["official-plugins"] }
 ```
 
 Or add the crate to an existing Dioxus application:
 
 ```sh
-cargo add dioxus-map-editor@0.1.0 --features official-plugins
+cargo add dioxus-map-editor@0.2.0 --features official-plugins
 ```
 
 To use the latest development revision:

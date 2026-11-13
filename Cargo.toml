@@ -1,6 +1,6 @@
 [package]
 name = "dioxus-map-editor"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.85"
 description = "An embeddable SVG map editor core and interaction canvas for Dioxus"
